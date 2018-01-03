@@ -1,19 +1,80 @@
 'use strict'
+require('./check-versions')()
+
+const express = require('express')
 const utils = require('./utils')
 const webpack = require('webpack')
 const config = require('../config')
 const merge = require('webpack-merge')
 const baseWebpackConfig = require('./webpack.base.conf')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const proxy = require('http-proxy-middleware')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
+const axios = require('axios')
 
-const HOST = process.env.HOST
-const PORT = process.env.PORT && Number(process.env.PORT)
+/*
+const app = express();
+//欺骗域名设置 开始
+var apiRoutes = express.Router()
+//获取歌单列表
+apiRoutes.get('/getSongList', function (req, res) {
+  var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+  axios.get(url, {
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    params: req.query
+  }).then((response) => {
+    res.json(response.data)
+  }).catch((e) => {
+    console.log(e)
+  })
+})
+//获取歌词
+apiRoutes.get('/lyric', function (req, res) {
+  var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+
+  axios.get(url, {
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    params: req.query
+  }).then((response) => {
+    var ret = response.data;
+    if (typeof ret === 'string') {
+      var reg = /^\w+\(({[^()]+})\)$/;
+      var matches = ret.match(reg);
+      if (matches) {
+        console.log(matches)
+        ret = JSON.parse(matches[1])
+      }
+    }
+    res.json(ret)
+  }).catch((e) => {
+    console.log(e)
+  })
+})
+
+app.use('/api', apiRoutes);
+*/
+
+// proxy api requests
+// 配置中间代理插件 其实就是获取 /config/index.js 下面的proxyTable 的键值
+var proxyTable = config.dev.proxyTable;
+Object.keys(proxyTable).forEach(function (context) {
+  var options = proxyTable[context]
+  if (typeof options === 'string') {
+    options = { target: options }
+  }
+  app.use(proxy(options.filter || context, options))
+})
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
-    rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap, usePostCSS: true })
+    rules: utils.styleLoaders({sourceMap: config.dev.cssSourceMap, usePostCSS: true})
   },
   // cheap-module-eval-source-map is faster for development
   devtool: config.dev.devtool,
@@ -23,18 +84,58 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     clientLogLevel: 'warning',
     historyApiFallback: true,
     hot: true,
-    compress: true,
-    host: HOST || config.dev.host,
-    port: PORT || config.dev.port,
+    host: process.env.HOST || config.dev.host,
+    port: process.env.PORT || config.dev.port,
     open: config.dev.autoOpenBrowser,
-    overlay: config.dev.errorOverlay
-      ? { warnings: false, errors: true }
-      : false,
+    overlay: config.dev.errorOverlay ? {
+      warnings: false,
+      errors: true,
+    } : false,
     publicPath: config.dev.assetsPublicPath,
     proxy: config.dev.proxyTable,
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
+    },
+    after(app) {
+      app.get('/getDiscList', function (req, res) {
+        var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://y.qq.com/portal/playlist.html',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      }),
+      //获取歌词
+      app.get('/lyric', function (req, res) {
+        var url = 'http://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric.fcg'
+
+        axios.get(url, {
+          headers: {
+            referer: `http://i.y.qq.com/v8/playsong.html?ADTAG=newyqq.song&songmid=${req.query.musicid}`,
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          var ret = response.data;
+          if (typeof ret === 'string') {
+            var reg = /^\w+\(({[^()]+})\)$/;
+            var matches = ret.match(reg);
+            if (matches) {
+              ret = JSON.parse(matches[1])
+            }
+          }
+          res.json(ret)
+        }).catch((e) => {
+          console.log(e)
+        })
+      })
     }
   },
   plugins: [
@@ -67,11 +168,11 @@ module.exports = new Promise((resolve, reject) => {
       // Add FriendlyErrorsPlugin
       devWebpackConfig.plugins.push(new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
+          messages: [`Your application is running here: http://${config.dev.host}:${port}`],
         },
         onErrors: config.dev.notifyOnErrors
-        ? utils.createNotifierCallback()
-        : undefined
+          ? utils.createNotifierCallback()
+          : undefined
       }))
 
       resolve(devWebpackConfig)
