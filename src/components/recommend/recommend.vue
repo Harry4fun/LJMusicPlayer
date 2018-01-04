@@ -1,7 +1,8 @@
 <template>
-    <div class="recommend">
-        <div class="recommend-content">
-            <div v-if="recommends.length" class="slider-wrapper">
+    <div class="recommend" ref="recommend">
+        <scroll class="recommend-content" v-bind:data="discList">
+          <div>
+            <div v-if="recommends.length" class="slider-wrapper" ref="slide-wrapper">
                 <slider>
                     <div v-for="item in recommends">
                         <a :href="item.linkUrl">
@@ -13,9 +14,20 @@
         
             <div class="recommend-list">
                 <h1 class="list-title">热门歌单推荐</h1>
-                <ul></ul>
+                <ul>
+                    <li v-for="item in discList" class="item">
+                        <div class="icon">
+                            <img :src="item.imgurl" width="60" height="60"/>
+                        </div>
+                        <div class="text">
+                            <h2 class="name" v-html="item.creator.name"></h2>
+                            <p class="desc" v-html="item.dissname"></p>
+                        </div>
+                    </li>
+                </ul>
             </div>
-        </div>
+          </div>
+        </scroll>
     </div>    
 </template>
 
@@ -23,6 +35,8 @@
     import Slider from 'base/slider/slider'
     import {getRecommend,getDiscList} from 'api/recommend'
     import {ERR_OK} from 'api/config'
+    // 引入自定义的scroll组件
+    import Scroll from 'base/scroll/scroll'
 
     export default {
         created() {
@@ -32,7 +46,8 @@
         },
         data() {
             return {
-                recommends : []
+                recommends : [],
+                discList : []
             }
         },
         methods: {
@@ -48,12 +63,14 @@
                 getDiscList().then((res) => {
                     if(res.code === ERR_OK){
                         console.log(res.data.list)
+                        this.discList = res.data.list
                     }
                 })
             }
         },
         components: {
-            Slider
+            Slider,
+            Scroll
         }
     }
 
@@ -61,8 +78,7 @@
 </script>
 
 <style lang="stylus" scoped rel="stylesheet/stylus">
-    @import "~common/stylus/variable"
-
+  @import "~common/stylus/variable"
   .recommend
     position: fixed
     width: 100%
