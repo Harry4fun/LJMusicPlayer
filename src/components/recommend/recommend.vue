@@ -1,12 +1,12 @@
 <template>
     <div class="recommend" ref="recommend">
-        <scroll class="recommend-content" v-bind:data="discList">
+        <scroll ref="scroll" class="recommend-content" v-bind:data="discList">
           <div>
             <div v-if="recommends.length" class="slider-wrapper" ref="slide-wrapper">
                 <slider>
                     <div v-for="item in recommends">
                         <a :href="item.linkUrl">
-                            <img :src="item.picUrl"/>
+                            <img :src="item.picUrl" @load="loadImage" class="needsclick"/>
                         </a>
                     </div>
                 </slider>
@@ -17,7 +17,7 @@
                 <ul>
                     <li v-for="item in discList" class="item">
                         <div class="icon">
-                            <img :src="item.imgurl" width="60" height="60"/>
+                            <img v-lazy="item.imgurl" width="60" height="60" />
                         </div>
                         <div class="text">
                             <h2 class="name" v-html="item.creator.name"></h2>
@@ -26,6 +26,9 @@
                     </li>
                 </ul>
             </div>
+          </div>
+          <div class="loading-container" v-if="!discList.length">
+            <loading></loading>
           </div>
         </scroll>
     </div>    
@@ -37,17 +40,19 @@
     import {ERR_OK} from 'api/config'
     // 引入自定义的scroll组件
     import Scroll from 'base/scroll/scroll'
+    import Loading from 'base/loading/loading'
 
     export default {
         created() {
             this._getRecommend()
-            
             this._getDiscList()
+
         },
         data() {
             return {
                 recommends : [],
                 discList : []
+                // checkedLoaded: false
             }
         },
         methods: {
@@ -66,11 +71,19 @@
                         this.discList = res.data.list
                     }
                 })
+            },
+            //图片加载时也是异步的 只要有一张图片被下载到
+            loadImage() {
+              if(!this.checkedLoaded) {
+                this.$refs.scroll.refresh()
+                this.checkedLoaded = true
+                }
             }
         },
         components: {
             Slider,
-            Scroll
+            Scroll,
+            Loading
         }
     }
 
