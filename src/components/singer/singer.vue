@@ -13,7 +13,8 @@ import { getSingerList } from 'api/singer'
 import { ERR_OK } from 'api/config'
 import Singer from 'common/js/singer'
 import Listview from 'base/listview/listview'
-import SingerDetail from 'components/singer-detail/singer-detail'
+// 语法糖
+import { mapMutations } from 'vuex'
 
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
@@ -34,17 +35,17 @@ methods: {
       this.$router.push({
         path: `/singer/${singer.id}`
       })
-      
-    },
+      // 将当前点击选中的歌手信息存储到store
+      this.setSinger(singer)
+    },    
+    ...mapMutations({
+      setSinger:'SET_SINGER'
+    }),
     _getSingerList() {
         getSingerList().then((res) => {
           if(res.code === ERR_OK){
-            // console.log(res.data.list)
-            // setTimeout(() => {
-              this.singers = this._normalizeSinger(res.data.list)
-              console.log('歌手数据：',this.singers)               
-            // }, 3000)
-
+            this.singers = this._normalizeSinger(res.data.list)
+            console.log('歌手数据：',this.singers)
           }
         })
     },

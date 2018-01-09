@@ -68,7 +68,7 @@ export default {
     // 创建
     shortcutList() {
       return this.data.map((group) => {
-        console.log('shortcutList:' + group.title.substr(0, 1))
+        // console.log('shortcutList:' + group.title.substr(0, 1))
         return group.title.substr(0, 1)
       })
     },
