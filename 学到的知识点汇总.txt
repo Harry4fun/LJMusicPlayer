@@ -1,0 +1,175 @@
+通过本项目学习到的知识点
+
+1.<router-link> 组件
+
+支持用户在具有路由功能的应用中（点击）导航。 
+通过 to 属性指定目标地址，默认渲染成带有正确链接的 <a> 标签，可以通过配置 tag 属性生成别的标签.。
+
+2.flex 弹性布局
+
+3.箭头函数
+https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+
+4.JSONP解决跨域访问问题
+http://justcoding.iteye.com/blog/1366102/
+
+5.Object.assign()
+https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+
+6.如何利用router-link左右一个tab导航组件
+
+7.基于axios实现后端接口代理实现后端接口代理
+
+遇到的问题及解决
+a>报404  Cannot GET /api/getDiscList
+参考recommend.js和webpack.dev.conf.js中代码 url一定要一致
+
+8>vue lazy load工具包
+
+9.css
+
+      .loading-container
+        position: absolute
+        width: 100%
+        top: 50%
+        transform: translateY(-50%)
+		
+		绝对定位，距离顶端
+		
+10.自己封装loading组件和listview组件
+
+11.js函数：Array.prototype.map()
+https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/map
+map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一个提供的函数后返回的结果
+
+let new_array = arr.map(function callback(currentValue, index, array) { 
+    // Return element for new_array 
+}[, thisArg])
+
+12.touchstart事件 html5 event用法
+
+https://developer.mozilla.org/zh-CN/docs/Web/Events/touchstart
+
+13.自定义属性 data-index 
+
+使用数据属性
+https://developer.mozilla.org/zh-CN/docs/Web/Guide/HTML/Using_data_attributes
+
+语法非常简单。所有在元素上以data-开头的属性为数据属性。比如说你有一片文章，你想要存储一些没有可视化展现意义的额外信息。请使用data属性：
+<article
+  id="electriccars"
+  data-columns="3"
+  data-index-number="12314"
+  data-parent="cars">
+...
+</article>
+
+在外部使用JavaScript去访问这些属性的值同样非常简单。你可以使用getAttribute()配合它们完整的HTML名称去读取它们，但标准定义了一个更简单的方法：DOMStringMap你可以使用dataset读取到数据。
+
+为了使用dataset对象去获取到数据属性，需要获取属性名中data-之后的部分(要注意的是破折号连接的名称需要转换为驼峰样式的名称)。
+var article = document.querySelector('#electriccars');
+ 
+article.dataset.columns // "3"
+article.dataset.indexNumber // "12314"
+article.dataset.parent // "cars"
+
+14.
+v-bind 简写为 '：'  对应的值为属性的名称
+v-on  简写为'@'  d对应的值为事件的名称
+
+15.js的apply方法
+this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
+
+16.歌手页面 导航栏功能的开发
+
+17.子路由的用法（歌手详情页）
+singer.vue：
+
+<template>
+    <div class="singer">
+      <listview :data="singers"></listview>
+      <router-view></router-view>
+    </div>
+</template>
+
+router/index.js
+
+18.$emit用法
+
+19.动态路由匹配
+动态路由匹配  参考：https://router.vuejs.org/zh-cn/essentials/dynamic-matching.html
+
+20.Vuex的用法
+
+语法糖 import {mapMutations} from 'vuex'
+
+
+21.js dom方法封装
+
+let elementStyle = document.createElement('div').style
+
+let vendor = (() => {
+  let transformNames = {
+    webkit: 'webkitTransform',
+    Moz: 'MozTransform',
+    O: 'OTransform',
+    ms: 'msTransform',
+    standard: 'transform'
+  }
+
+  for (let key in transformNames) {
+    if (elementStyle[transformNames[key]] !== undefined) {
+      return key
+    }
+  }
+
+  return false
+})()
+
+export function prefixStyle(style) {
+  if (vendor === false) {
+    return false
+  }
+
+  if (vendor === 'standard') {
+    return style
+  }
+
+  return vendor + style.charAt(0).toUpperCase() + style.substr(1)
+}
+
+22.语法糖 mapGetters
+<template>
+  <div class="player" v-show="playlist.length > 0">
+    <div class="normal-player" v-show="fullScreen">
+        播放器
+    </div>
+    <div class="mini-player" v-show="!fullScreen">
+    </div>
+  </div>
+</template>
+<script type="text/ecmascript-6">
+import { mapGetters } from 'vuex'
+export default {
+  computed: {
+    ...mapGetters([
+      'fullScreen',
+      'playlist'
+    ])
+  }
+}
+</script>
+23.语法糖mapActions
+import { mapActions } from 'vuex'
+// 接受子组件被点击的事件通知 然后处理
+    selectItem(item, index) {
+      this.selectPlay({
+        list: this.songs,
+        index: index
+      })
+    },
+    // vuex语法糖 作用是声明了
+    ...mapActions([
+      'selectPlay'
+    ])
+24.子组件向父组件派发事件this.$emit('functionA',{Params})	
