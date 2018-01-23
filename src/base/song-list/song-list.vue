@@ -1,7 +1,7 @@
 <template>
 <div class="song-list">
   <ul>
-    <li v-for="song in songs" class="item">
+    <li @click="selectItem(song, index)"  v-for="(song,index) in songs" class="item">
       <div class="content">
         <h2 class="name">{{ song.name }}</h2>
         <p class="desc">{{ getDesc(song)}}</p>
@@ -20,7 +20,13 @@ export default {
   },
   methods: {
     getDesc(song) {
+      // 通过反斜杠(\)来做多行字符串或者字符串一行行拼接。
+      // 基本的字符串格式化。将表达式嵌入字符串中进行拼接。用${}来界定。
       return `${song.singer}·${song.album}`
+    },
+    // 歌曲选中时向父组件派发被选中通知
+    selectItem(item, index) {
+      this.$emit('select', item, index)
     }
   }
 }
