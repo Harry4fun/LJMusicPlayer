@@ -33,14 +33,14 @@
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
-              <i class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i @click="prev" class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
+            <div class="icon i-center" :class="disableCls">
               <i @click="togglePlaying" :class="playIcon"></i>
             </div>
-            <div class="icon i-right">
-              <i class="icon-next"></i>
+            <div class="icon i-right" :class="disableCls">
+              <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -68,7 +68,8 @@
         </div>
       </div>        
     </transition>
-    <audio ref="audio" :src="currentSong.url"></audio>
+    <!-- canplay和error的用法 -->
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -79,6 +80,11 @@ import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
 
 export default {
+  data () {
+    return {
+      songReady: false
+    }
+  },
   computed: {
     cdCls() {
       return this.playing ? 'play' : 'play pause'
@@ -89,17 +95,23 @@ export default {
     miniIcon() {
       return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
     },
+    // 当当前歌曲的dom未准备好播放时 添加该class
+    disableCls() {
+      return this.songReady ? '' : 'disable'
+    },
     ...mapGetters([
       'fullScreen',
       'playlist',
       'currentSong',
-      'playing'
+      'playing',
+      'currentIndex'
     ])
   },
   methods: {
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE'
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCurrentIndex: 'SET_CURRENT_INDEX'
     }),
     back() {
       this.setFullScreen(false)
@@ -107,7 +119,55 @@ export default {
     // 播放/暂停 按钮
     // 实际上该方法只是改变store里playing的值 真正播放、暂停是在watch方法中实现的
     togglePlaying() {
+      // dom未准备好播放当前歌曲时 点击该按钮无效
+      if (!this.songReady) {
+        return
+      }
       this.setPlayingState(!this.playing)
+    },
+    // 上一首歌曲
+    prev() {
+      // dom未准备好播放当前歌曲时 点击该按钮无效
+      if (!this.songReady) {
+        return
+      }
+      let index = this.currentIndex - 1
+      // 防止数组越界  处理下一首是第一首的情况
+      if (index === -1) {
+        index = 0
+      }
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      // 切换到上一首后songReady设置为默认值
+      this.songReady = false
+    },
+    // 下一首歌曲
+    next() {
+      // dom未准备好播放当前歌曲时 点击该按钮无效
+      if (!this.songReady) {
+        return
+      }
+      let index = this.currentIndex + 1
+      // 防止数组越界  处理下一首是最后一首的情况
+      if (index === this.playlist.length) {
+        index = 0
+      }
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      // 切换到下一首后songReady设置为默认值
+      this.songReady = false
+    },
+    // 当audio控件准备好播放制定的音频/视频时 会调用该方法
+    ready() {
+      this.songReady = true
+    },
+    // 播放当前歌曲失败时
+    error() {
+      this.songReady = true
     },
     open() {
       this.setFullScreen(true)
