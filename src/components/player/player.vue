@@ -29,6 +29,14 @@
           </div>
         </div>
         <div class="bottom">
+          <!-- 播放进度条 -->
+          <div class="progress-wrapper">
+            <span class="time time-l">{{ format(currentTime) }}</span>
+            <div class="progress-bar-wrapper">
+            </div>
+            <span class="time time-r">{{ format(currentSong.duration)}}</span>
+          </div>
+          <!-- 播放按钮：暂停、播放 上一曲 下一曲 -->
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
@@ -60,7 +68,7 @@
         </div>
         <div class="control">
           <!-- vue click.stop阻止点击事件继续传播 不加stop的话open方法也会触发-->
-<!-- http://blog.csdn.net/qq_21859119/article/details/78533584 -->
+          <!-- http://blog.csdn.net/qq_21859119/article/details/78533584 -->
           <i @click.stop="togglePlaying" :class="miniIcon"></i>
         </div>
         <div class="control">
@@ -69,7 +77,8 @@
       </div>        
     </transition>
     <!-- canplay和error的用法 -->
-    <audio ref="audio" :src="currentSong.url" @canplay="ready" @error="error"></audio>
+    <audio ref="audio" :src="currentSong.url" @canplay="ready" 
+    @error="error" @timeupdate="updateTime"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -82,7 +91,8 @@ const transform = prefixStyle('transform')
 export default {
   data () {
     return {
-      songReady: false
+      songReady: false,
+      currentTime: 0
     }
   },
   computed: {
@@ -115,6 +125,26 @@ export default {
     }),
     back() {
       this.setFullScreen(false)
+    },
+    // 歌曲播放时会触发
+    updateTime(e) {
+      this.currentTime = e.target.currentTime
+    },
+    // 对进度时间格式进行处理
+    format(interval) {
+      interval = interval | 0
+      const minute = this._pad(interval / 60 | 0)
+      const second = this._pad(interval % 60)
+      return `${minute}:${second}`
+    },
+    // 补0  num: 要处理的字符串  n: 最多几位
+    _pad(num, n = 2) {
+      let len = num.toString().length
+      while (len < n) {
+        num = '0' + num
+        len++
+      }
+      return num
     },
     // 播放/暂停 按钮
     // 实际上该方法只是改变store里playing的值 真正播放、暂停是在watch方法中实现的
