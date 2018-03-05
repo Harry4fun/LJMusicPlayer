@@ -1,8 +1,11 @@
 <template>
-  <div class="progress-bar">
+  <div class="progress-bar" ref="progressBar">
     <div class="bar-inner">
-      <div class="progress"></div>
-      <div class="progress-btn-wrapper">
+      <!-- 已播放部分进度 亮色 -->
+      <div class="progress" ref="progress"></div>
+      <!-- 播放拖动按钮 -->
+      <div class="progress-btn-wrapper" ref="progressBtn">
+        <!-- 当前播放位置 按钮 -->
         <div class="progress-btn"></div>
       </div>
     </div>
@@ -10,8 +13,30 @@
 </template>
 
 <script type="text/ecmascript-6">
-export default {
+import {prefixStyle} from 'common/js/dom'
 
+const progressBtnWidth = 16
+const transform = prefixStyle('transform')
+
+export default {
+  props: {
+    percent: {
+      type: Number,
+      default: 0
+    }
+  },
+  watch: {
+    percent(newPercent) {
+      if (newPercent >= 0) {
+        // 进度条实际宽度 = 进度条总宽度-播放拖动按钮的宽度
+        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+        // 播放拖动按钮左侧宽度
+        const offsetWidth = newPercent * barWidth
+        this.$refs.progress.style.width = `${offsetWidth}px`
+        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+      }
+    }
+  }
 }
 </script>
 
