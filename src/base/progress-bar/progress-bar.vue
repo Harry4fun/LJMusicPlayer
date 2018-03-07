@@ -1,5 +1,5 @@
 <template>
-  <div class="progress-bar" ref="progressBar">
+  <div class="progress-bar" ref="progressBar" @click="progressClick">
     <div class="bar-inner">
       <!-- 已播放部分进度 亮色 -->
       <div class="progress" ref="progress"></div>
@@ -70,6 +70,10 @@ export default {
       const percent = this.$refs.progress.clientWidth / barWidth
       // 派发事件 拖动完成 以便于让父组件接到该事件后根据percent值调整歌曲播放时刻
       this.$emit('percentChange', percent)
+    },
+    progressClick(e) {
+      this._offset(e.offsetX)
+      this._triggerPercent()
     }
   },
   watch: {
