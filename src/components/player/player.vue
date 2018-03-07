@@ -33,7 +33,8 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{ format(currentTime) }}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent"></progress-bar>
+              <!-- 监听歌曲百分比变化 并处理 -->
+              <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
             </div>
             <span class="time time-r">{{ format(currentSong.duration)}}</span>
           </div>
@@ -152,6 +153,14 @@ export default {
         len++
       }
       return num
+    },
+    // 监听percentChange 事件 调整歌曲播放时刻
+    onProgressBarChange(percent) {
+      this.$refs.audio.currentTime = this.currentSong.duration * percent
+      // 拖动后 无论歌曲是否播放 都立即变为播放状态
+      if (!this.playing) {
+        this.togglePlaying()
+      }
     },
     // 播放/暂停 按钮
     // 实际上该方法只是改变store里playing的值 真正播放、暂停是在watch方法中实现的

@@ -4,7 +4,11 @@
       <!-- 已播放部分进度 亮色 -->
       <div class="progress" ref="progress"></div>
       <!-- 播放拖动按钮 -->
-      <div class="progress-btn-wrapper" ref="progressBtn">
+      <div class="progress-btn-wrapper" ref="progressBtn"
+        @touchstart.prevent="progressTouchStart"
+        @touchmove.prevent="progressTouchMove"
+        @touchend="progressTouchEnd"
+      >
         <!-- 当前播放位置 按钮 -->
         <div class="progress-btn"></div>
       </div>
@@ -25,15 +29,57 @@ export default {
       default: 0
     }
   },
+  created () {
+    // 创建1个共享对象 用于
+    // progressTouchStart progressTouchMove以及
+    // progressTouchEnd方法共享数据
+    this.touch = {}
+  },
+  methods: {
+    progressTouchStart(e) {
+      this.touch.initiated = true;
+      this.touch.startX = e.touches[0].pageX
+      // 已播放的宽度
+      this.touch.left = this.$refs.progress.clientWidth
+    },
+    progressTouchMove(e) {
+      if (!this.touch.initiated) {
+        return
+      }
+      // 本次拖动距离
+      const deltaX = e.touches[0].pageX - this.touch.startX
+      // 拖动后拖动按钮左侧高亮显示的部分 要满足两个条件
+      // 1.>0  2.<整个进度条的宽度
+      const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltaX))
+      this._offset(offsetWidth)
+    },
+    progressTouchEnd(e) {
+      this.initiated = false
+      // 拖动结束时派发1一个事件 调整歌曲播放时间与当前进度条一致
+      this._triggerPercent()
+    },
+    // 根据传入的偏移量 从进度条左侧起设置宽度为偏移量大小的动画
+    _offset(offsetWidth) {
+      this.$refs.progress.style.width = `${offsetWidth}px`
+      this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+    },
+    _triggerPercent() {
+      // 进度条实际总宽度 = 进度条总宽度-播放拖动按钮的宽度
+      const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+      // 计算拖动结束后的进度百分比
+      const percent = this.$refs.progress.clientWidth / barWidth
+      // 派发事件 拖动完成 以便于让父组件接到该事件后根据percent值调整歌曲播放时刻
+      this.$emit('percentChange', percent)
+    }
+  },
   watch: {
     percent(newPercent) {
-      if (newPercent >= 0) {
+      if (newPercent >= 0 && !this.touch.initiated) {
         // 进度条实际宽度 = 进度条总宽度-播放拖动按钮的宽度
         const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
         // 播放拖动按钮左侧宽度
         const offsetWidth = newPercent * barWidth
-        this.$refs.progress.style.width = `${offsetWidth}px`
-        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+        this._offset(offsetWidth)
       }
     }
   }

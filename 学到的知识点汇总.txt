@@ -173,3 +173,26 @@ import { mapActions } from 'vuex'
       'selectPlay'
     ])
 24.子组件向父组件派发事件this.$emit('functionA',{Params})	
+25. es-6语法：
+反引号的作用：
+反引号（·）标识，可用于当做普通字符串或定义多行字符串或在字符串中嵌入变量。
+26.nexttick的用法
+https://segmentfault.com/a/1190000008570874
+
+27.vue click.stop阻止点击事件继续传播
+http://blog.csdn.net/qq_21859119/article/details/78533584
+28.Audio/Video DOM canplay 事件
+当浏览器能够开始播放指定的音频/视频时，发生 canplay 事件。
+
+当音频/视频处于加载过程中时，会依次发生以下事件：
+
+loadstart
+durationchange
+loadedmetadata
+loadeddata
+progress
+canplay
+canplaythrough
+
+http://www.w3school.com.cn/tags/av_event_canplay.asp
+29.touchstart\touchmove\touchend事件监听
